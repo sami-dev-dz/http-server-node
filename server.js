@@ -2,9 +2,9 @@ import http from "http";
 
 const server = http.createServer((req, res) => {
   res.statusCode = 200;
-  console.log(req.url);
-  console.log(req.method);
-  console.log(req.headers);
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  console.log(url.pathname);
+  console.log(url.searchParams);
   res.setHeader("Content-Type", "text/plain");
   res.end("hello world");
 });

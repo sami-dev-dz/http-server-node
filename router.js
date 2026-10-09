@@ -11,6 +11,18 @@ export function router(method, path, res) {
     return;
   }
 
+  // GET /users/:id
+  const userMatch = path.match(/^\/users\/([^/]+)$/);
+  if (method === "GET" && userMatch) {
+    const params = {
+      id: userMatch[1],
+    };
+
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(params));
+    return;
+  }
   if (method === "POST" && path === "/users") {
     res.statusCode = 201;
     res.end("Users Created");

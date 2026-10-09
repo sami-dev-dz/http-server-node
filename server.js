@@ -4,7 +4,12 @@ const server = http.createServer((req, res) => {
   res.statusCode = 200;
   const url = new URL(req.url, `http://${req.headers.host}`);
   const path = url.pathname;
+  const page = url.searchParams.get("page");
+  const limit = url.searchParams.get("limit");
   const method = req.method;
+  console.log("PathName = ", paht);
+  console.log("Page = ", page);
+  console.log("Limit = ", limit);
   router(method, path, res);
   res.setHeader("Content-Type", "text/plain");
   res.end("hello world");

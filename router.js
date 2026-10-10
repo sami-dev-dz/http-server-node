@@ -28,12 +28,32 @@ export function router(req, path, res) {
   }
 
   if (method === "POST" && path === "/api/users") {
+    const MAX_BODY_SIZE = 1 * 1024 * 1024; // 1 MB
+
     let body = "";
+    let bodySize = 0;
+    let tooLarge = false;
+
     req.on("data", (chunk) => {
+      if (tooLarge) return;
+
+      bodySize += chunk.length;
+
+      if (bodySize > MAX_BODY_SIZE) {
+        tooLarge = true;
+
+        sendJson(res, 413, {
+          message: "Payload Too Large",
+        });
+
+        return;
+      }
+
       body += chunk;
     });
 
     req.on("end", () => {
+      if (tooLarge) return;
       try {
         const data = JSON.parse(body);
         if (typeof data.name !== "string" || !data.name.trim()) {

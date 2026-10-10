@@ -6,7 +6,8 @@ const users = [
 ];
 
 //GET /api/users
-export function router(method, path, res) {
+export function router(req, path, res) {
+  const method = req.method;
   if (method === "GET" && path === "/api/users") {
     sendJson(res, 200, users);
     return;
@@ -22,7 +23,36 @@ export function router(method, path, res) {
         message: "User not found",
       });
     }
-    sendJson(res, 201, user);
+    sendJson(res, 200, user);
+    return;
+  }
+
+  if (method === "POST" && path === "/api/users") {
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk;
+    });
+
+    req.on("end", () => {
+      try {
+        const data = JSON.parse(body);
+        if (typeof data.name !== "string" || !data.name.trim()) {
+          sendJson(res, 400, { message: "Name is required" });
+          return;
+        }
+
+        const newUser = {
+          id: users.length ? Math.max(...users.map((user) => user.id)) + 1 : 1,
+          name: data.name.trim(),
+        };
+
+        users.push(newUser);
+
+        sendJson(res, 201, newUser);
+      } catch {
+        sendJson(res, 400, { message: "Invalid JSON body" });
+      }
+    });
     return;
   }
   // Route introuvable

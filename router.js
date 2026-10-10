@@ -1,13 +1,17 @@
+import { sendJson } from "./utils.js";
+
 export function router(method, path, res) {
   if (method === "GET" && path === "/") {
-    res.statusCode = 200;
-    res.end("Home Page");
+    sendJson(res, 200, {
+      message: "Home Page",
+    });
     return;
   }
 
   if (method === "GET" && path === "/users") {
-    res.statusCode = 200;
-    res.end("Users Page");
+    sendJson(res, 200, {
+      message: "Page Users",
+    });
     return;
   }
 
@@ -18,17 +22,17 @@ export function router(method, path, res) {
       id: userMatch[1],
     };
 
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify(params));
+    sendJson(res, 200, params);
     return;
   }
   if (method === "POST" && path === "/users") {
-    res.statusCode = 201;
-    res.end("Users Created");
+    sendJson(res, 201, {
+      message: "Users created",
+    });
     return;
   }
 
-  res.statusCode = 404;
-  console.log("Route not found");
+  sendJson(res, 404, {
+    message: "Route not found",
+  });
 }

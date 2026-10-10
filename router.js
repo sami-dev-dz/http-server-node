@@ -1,37 +1,31 @@
 import { sendJson } from "./utils.js";
 
-export function router(method, path, res) {
-  if (method === "GET" && path === "/") {
-    sendJson(res, 200, {
-      message: "Home Page",
-    });
-    return;
-  }
+const users = [
+  { id: 1, name: "Sami" },
+  { id: 2, name: "Alex" },
+];
 
-  if (method === "GET" && path === "/users") {
-    sendJson(res, 200, {
-      message: "Page Users",
-    });
+//GET /api/users
+export function router(method, path, res) {
+  if (method === "GET" && path === "/api/users") {
+    sendJson(res, 200, users);
     return;
   }
 
   // GET /users/:id
-  const userMatch = path.match(/^\/users\/([^/]+)$/);
+  const userMatch = path.match(/^\/api\/users\/([^/]+)$/);
   if (method === "GET" && userMatch) {
-    const params = {
-      id: userMatch[1],
-    };
-
-    sendJson(res, 200, params);
+    const id = Number(userMatch[1]);
+    const user = users.find((user) => user.id === id);
+    if (!user) {
+      sendJson(res, 404, {
+        message: "User not found",
+      });
+    }
+    sendJson(res, 201, user);
     return;
   }
-  if (method === "POST" && path === "/users") {
-    sendJson(res, 201, {
-      message: "Users created",
-    });
-    return;
-  }
-
+  // Route introuvable
   sendJson(res, 404, {
     message: "Route not found",
   });

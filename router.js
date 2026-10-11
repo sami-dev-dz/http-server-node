@@ -28,51 +28,20 @@ export function router(req, path, res) {
   }
 
   if (method === "POST" && path === "/api/users") {
-    const MAX_BODY_SIZE = 1 * 1024 * 1024; // 1 MB
+    const data = req.body;
 
-    let body = "";
-    let bodySize = 0;
-    let tooLarge = false;
+    if (!data || typeof data.name !== "string" || !data.name.trim()) {
+      sendJson(res, 400, { message: "Name is required" });
+      return;
+    }
 
-    req.on("data", (chunk) => {
-      if (tooLarge) return;
+    const newUser = {
+      id: users.length ? Math.max(...users.map((user) => user.id)) + 1 : 1,
+      name: data.name.trim(),
+    };
 
-      bodySize += chunk.length;
-
-      if (bodySize > MAX_BODY_SIZE) {
-        tooLarge = true;
-
-        sendJson(res, 413, {
-          message: "Payload Too Large",
-        });
-
-        return;
-      }
-
-      body += chunk;
-    });
-
-    req.on("end", () => {
-      if (tooLarge) return;
-      try {
-        const data = JSON.parse(body);
-        if (typeof data.name !== "string" || !data.name.trim()) {
-          sendJson(res, 400, { message: "Name is required" });
-          return;
-        }
-
-        const newUser = {
-          id: users.length ? Math.max(...users.map((user) => user.id)) + 1 : 1,
-          name: data.name.trim(),
-        };
-
-        users.push(newUser);
-
-        sendJson(res, 201, newUser);
-      } catch {
-        sendJson(res, 400, { message: "Invalid JSON body" });
-      }
-    });
+    users.push(newUser);
+    sendJson(res, 201, newUser);
     return;
   }
   // Route introuvable

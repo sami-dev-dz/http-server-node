@@ -1,6 +1,7 @@
 import http from "http";
 import router from "./router.js";
 import { logger } from "./middleware/logger.js";
+import { jsonMiddleware } from "./middleware/json.js";
 
 const server = http.createServer((req, res) => {
   res.statusCode = 200;
@@ -11,9 +12,13 @@ const server = http.createServer((req, res) => {
   console.log("PathName = ", paht);
   console.log("Page = ", page);
   console.log("Limit = ", limit);
+
   logger(req, res, () => {
-    router(req, res, path);
+    jsonMiddleware(req, res, () => {
+      router(req, res, path);
+    });
   });
+
   res.setHeader("Content-Type", "text/plain");
   res.end("hello world");
 });

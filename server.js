@@ -2,30 +2,33 @@ import http from "http";
 import { router } from "./router.js";
 import { logger } from "./middleware/logger.js";
 import { jsonMiddleware } from "./middleware/jsonMiddleware.js";
-import { sendJson } from "./utils.js";
+import { serveStatic } from "./static.js";
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  const path = url.pathname;
-
-  const page = url.searchParams.get("page");
-  const limit = url.searchParams.get("limit");
-
-  console.log("PathName =", path);
-  console.log("Page =", page);
-  console.log("Limit =", limit);
+  const pathname = url.pathname;
 
   logger(req, res, () => {
-    jsonMiddleware(req, res, () => {
+    jsonMiddleware(req, res, async () => {
       try {
-        router(req, res, path);
+        const served = await serveStatic(req, res, pathname);
+
+        if (served || res.writableEnded) {
+          return;
+        }
+
+        router(req, res, pathname);
       } catch (error) {
         console.error(error);
 
         if (!res.writableEnded) {
-          sendJson(res, 500, {
-            error: "Internal Server Error",
-          });
+          res.statusCode = 500;
+          res.setHeader("Content-Type", "application/json");
+          res.end(
+            JSON.stringify({
+              error: "Internal Server Error",
+            }),
+          );
         }
       }
     });

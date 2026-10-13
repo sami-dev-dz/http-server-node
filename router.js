@@ -5,47 +5,65 @@ const users = [
   { id: 2, name: "Alex" },
 ];
 
-//GET /api/users
-export function router(req, path, res) {
+export function router(req, res, path) {
   const method = req.method;
-  if (method === "GET" && path === "/api/users") {
-    sendJson(res, 200, users);
+
+  // GET /api/users
+  if (path === "/api/users") {
+    if (method === "GET") {
+      sendJson(res, 200, users);
+      return;
+    }
+
+    if (method === "POST") {
+      const data = req.body;
+
+      if (!data || typeof data.name !== "string" || !data.name.trim()) {
+        sendJson(res, 400, { error: "Name is required" });
+        return;
+      }
+
+      const newUser = {
+        id: users.length ? Math.max(...users.map((user) => user.id)) + 1 : 1,
+        name: data.name.trim(),
+      };
+
+      users.push(newUser);
+      sendJson(res, 201, newUser);
+      return;
+    }
+
+    sendJson(res, 405, { error: "Method not allowed" });
     return;
   }
 
-  // GET /users/:id
+  // GET /api/users/:id
   const userMatch = path.match(/^\/api\/users\/([^/]+)$/);
-  if (method === "GET" && userMatch) {
-    const id = Number(userMatch[1]);
-    const user = users.find((user) => user.id === id);
-    if (!user) {
-      sendJson(res, 404, {
-        message: "User not found",
-      });
+
+  if (userMatch) {
+    if (method !== "GET") {
+      sendJson(res, 405, { error: "Method not allowed" });
+      return;
     }
+
+    const id = Number(userMatch[1]);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      sendJson(res, 400, { error: "Invalid user ID" });
+      return;
+    }
+
+    const user = users.find((user) => user.id === id);
+
+    if (!user) {
+      sendJson(res, 404, { error: "User not found" });
+      return;
+    }
+
     sendJson(res, 200, user);
     return;
   }
 
-  if (method === "POST" && path === "/api/users") {
-    const data = req.body;
-
-    if (!data || typeof data.name !== "string" || !data.name.trim()) {
-      sendJson(res, 400, { message: "Name is required" });
-      return;
-    }
-
-    const newUser = {
-      id: users.length ? Math.max(...users.map((user) => user.id)) + 1 : 1,
-      name: data.name.trim(),
-    };
-
-    users.push(newUser);
-    sendJson(res, 201, newUser);
-    return;
-  }
   // Route introuvable
-  sendJson(res, 404, {
-    message: "Route not found",
-  });
+  sendJson(res, 404, { error: "Route not found" });
 }

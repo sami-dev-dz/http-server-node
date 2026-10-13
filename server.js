@@ -1,26 +1,35 @@
 import http from "http";
-import router from "./router.js";
+import { router } from "./router.js";
 import { logger } from "./middleware/logger.js";
-import { jsonMiddleware } from "./middleware/json.js";
+import { jsonMiddleware } from "./middleware/jsonMiddleware.js";
+import { sendJson } from "./utils.js";
 
 const server = http.createServer((req, res) => {
-  res.statusCode = 200;
   const url = new URL(req.url, `http://${req.headers.host}`);
   const path = url.pathname;
+
   const page = url.searchParams.get("page");
   const limit = url.searchParams.get("limit");
-  console.log("PathName = ", paht);
-  console.log("Page = ", page);
-  console.log("Limit = ", limit);
+
+  console.log("PathName =", path);
+  console.log("Page =", page);
+  console.log("Limit =", limit);
 
   logger(req, res, () => {
     jsonMiddleware(req, res, () => {
-      router(req, res, path);
+      try {
+        router(req, res, path);
+      } catch (error) {
+        console.error(error);
+
+        if (!res.writableEnded) {
+          sendJson(res, 500, {
+            error: "Internal Server Error",
+          });
+        }
+      }
     });
   });
-
-  res.setHeader("Content-Type", "text/plain");
-  res.end("hello world");
 });
 
 server.listen(3000, () => {

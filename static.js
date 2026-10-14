@@ -3,16 +3,11 @@ import { stat } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { sendJson } from "./utils.js";
+import { getMimeType } from "./mime.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, "public");
-
-const contentTypes = {
-  ".html": "text/html; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-};
 
 const routes = {
   "/": "index.html",
@@ -52,7 +47,7 @@ export async function serveStatic(req, res, pathname) {
   }
 
   res.statusCode = 200;
-  res.setHeader("Content-Type", contentTypes[path.extname(filename)]);
+  res.setHeader("Content-Type", getMimeType(filePath));
 
   const stream = createReadStream(filePath);
 

@@ -1,4 +1,5 @@
-import { readFile } from "fs/promises";
+import { createReadStream } from "fs";
+import { stat } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { sendJson } from "./utils.js";
@@ -13,16 +14,16 @@ const contentTypes = {
   ".js": "text/javascript; charset=utf-8",
 };
 
+const routes = {
+  "/": "index.html",
+  "/style.css": "style.css",
+  "/app.js": "app.js",
+};
+
 export async function serveStatic(req, res, pathname) {
   if (req.method !== "GET") {
     return false;
   }
-
-  const routes = {
-    "/": "index.html",
-    "/style.css": "style.css",
-    "/app.js": "app.js",
-  };
 
   const filename = routes[pathname];
 
@@ -30,22 +31,42 @@ export async function serveStatic(req, res, pathname) {
     return false;
   }
 
+  const filePath = path.join(publicDir, filename);
+
   try {
-    const filePath = path.join(publicDir, filename);
-    const content = await readFile(filePath);
+    const fileInfo = await stat(filePath);
 
-    res.statusCode = 200;
-    res.setHeader("Content-Type", contentTypes[path.extname(filename)]);
-    res.end(content);
-
-    return true;
+    if (!fileInfo.isFile()) {
+      sendJson(res, 404, { error: "File not found" });
+      return true;
+    }
   } catch (error) {
+    if (error.code === "ENOENT" || error.code === "ENOTDIR") {
+      sendJson(res, 404, { error: "File not found" });
+      return true;
+    }
+
     console.error(error);
-
-    sendJson(res, 500, {
-      error: "Internal Server Error",
-    });
-
+    sendJson(res, 500, { error: "Internal Server Error" });
     return true;
   }
+
+  res.statusCode = 200;
+  res.setHeader("Content-Type", contentTypes[path.extname(filename)]);
+
+  const stream = createReadStream(filePath);
+
+  stream.on("error", (error) => {
+    console.error(error);
+
+    if (!res.headersSent) {
+      sendJson(res, 500, { error: "Internal Server Error" });
+    } else {
+      res.destroy(error);
+    }
+  });
+
+  stream.pipe(res);
+
+  return true;
 }

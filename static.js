@@ -9,6 +9,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, "public");
 
+if (pathname.startsWith("/api/")) {
+  return false;
+}
+
+function getSafeFilePath(pathname) {
+  const relativePath = pathname === "/" ? "index.html" : pathname.slice(1);
+
+  const filePath = path.resolve(publicDir, relativePath);
+  const relative = path.relative(publicDir, filePath);
+
+  if (
+    relative === ".." ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  ) {
+    return null;
+  }
+
+  return filePath;
+}
+
 const routes = {
   "/": "index.html",
   "/style.css": "style.css",
@@ -20,13 +41,14 @@ export async function serveStatic(req, res, pathname) {
     return false;
   }
 
-  const filename = routes[pathname];
+  const filePath = getSafeFilePath(pathname);
 
-  if (!filename) {
-    return false;
+  if (!filePath) {
+    sendJson(res, 403, {
+      error: "Access denied",
+    });
+    return true;
   }
-
-  const filePath = path.join(publicDir, filename);
 
   try {
     const fileInfo = await stat(filePath);

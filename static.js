@@ -73,6 +73,13 @@ export async function serveStatic(req, res, pathname) {
     const etag = await generateETag(filePath);
     res.setHeader("ETag", etag);
 
+    const clientETag = req.headers["if-none-match"];
+
+    if (clientETag === etag) {
+      res.statusCode = 304;
+      res.end();
+      return true;
+    }
     res.statusCode = 200;
     res.setHeader("Content-Type", getMimeType(filePath));
 

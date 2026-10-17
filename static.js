@@ -1,5 +1,6 @@
 import { createReadStream } from "fs";
-import { stat } from "fs/promises";
+import { stat, readFile } from "fs/promises";
+import { createHash } from "crypto";
 import path from "path";
 import { fileURLToPath } from "url";
 import { sendJson } from "./utils.js";
@@ -8,10 +9,6 @@ import { getMimeType } from "./mime.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, "public");
-
-if (pathname.startsWith("/api/")) {
-  return false;
-}
 
 function getSafeFilePath(pathname) {
   const relativePath = pathname === "/" ? "index.html" : pathname.slice(1);
@@ -30,13 +27,19 @@ function getSafeFilePath(pathname) {
   return filePath;
 }
 
-const routes = {
-  "/": "index.html",
-  "/style.css": "style.css",
-  "/app.js": "app.js",
-};
+async function generateETag(filePath) {
+  const content = await readFile(filePath);
+
+  const hash = createHash("sha256").update(content).digest("hex");
+
+  return `"${hash}"`;
+}
 
 export async function serveStatic(req, res, pathname) {
+  if (pathname.startsWith("/api/")) {
+    return false;
+  }
+
   if (req.method !== "GET") {
     return false;
   }
@@ -44,9 +47,7 @@ export async function serveStatic(req, res, pathname) {
   const filePath = getSafeFilePath(pathname);
 
   if (!filePath) {
-    sendJson(res, 403, {
-      error: "Access denied",
-    });
+    sendJson(res, 403, { error: "Access denied" });
     return true;
   }
 
@@ -68,22 +69,38 @@ export async function serveStatic(req, res, pathname) {
     return true;
   }
 
-  res.statusCode = 200;
-  res.setHeader("Content-Type", getMimeType(filePath));
+  try {
+    const etag = await generateETag(filePath);
+    res.setHeader("ETag", etag);
 
-  const stream = createReadStream(filePath);
+    res.statusCode = 200;
+    res.setHeader("Content-Type", getMimeType(filePath));
 
-  stream.on("error", (error) => {
+    const stream = createReadStream(filePath);
+
+    stream.on("error", (error) => {
+      console.error(error);
+
+      if (!res.headersSent) {
+        sendJson(res, 500, {
+          error: "Internal Server Error",
+        });
+      } else {
+        res.destroy(error);
+      }
+    });
+
+    stream.pipe(res);
+    return true;
+  } catch (error) {
     console.error(error);
 
     if (!res.headersSent) {
-      sendJson(res, 500, { error: "Internal Server Error" });
-    } else {
-      res.destroy(error);
+      sendJson(res, 500, {
+        error: "Internal Server Error",
+      });
     }
-  });
 
-  stream.pipe(res);
-
-  return true;
+    return true;
+  }
 }

@@ -8,7 +8,7 @@ import { getMimeType } from "./mime.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const publicDir = path.join(__dirname, "public");
+const publicDir = path.join(__dirname, "..", "public");
 
 function getSafeFilePath(pathname) {
   const relativePath = pathname === "/" ? "index.html" : pathname.slice(1);

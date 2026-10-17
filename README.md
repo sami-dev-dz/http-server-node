@@ -1,115 +1,130 @@
-# HTTP Server Node
+# HTTP Server with Node.js
 
-A lightweight HTTP server built from scratch with Node.js native modules — no Express, no web framework.
+A simple HTTP server built from scratch using Node.js native modules, without Express or any other framework. This project demonstrates how HTTP requests, routing, middleware, JSON APIs, and static file serving work internally.
 
-This project explores the fundamentals of HTTP by implementing request handling, custom routing, middleware, a REST API, static file serving, and HTTP caching.
+## 📌 Overview
 
-## Overview
+The goal of this project is to understand how to build a basic web server using Node.js's native `http` module.
 
-The goal of this project is to understand how a web server works internally by building its core features with native Node.js APIs.
+The server provides:
 
-Rather than relying on a framework, the server handles HTTP requests and responses directly, with separate modules for routing, middleware, JSON processing, and static file delivery.
+- A REST API for managing users.
+- Middleware for logging requests and parsing JSON bodies.
+- Static file serving for HTML, CSS, and JavaScript.
+- Basic path traversal protection.
+- HTTP status codes and error handling.
+- ETag-based cache validation using `If-None-Match`.
 
-## Features
+## 🛠️ Technologies
 
-- **Native HTTP server** — request and response handling with Node.js `http`
-- **Custom routing** — method-based routes and dynamic URL parameters
-- **REST API** — retrieve users and create new ones
-- **Custom middleware** — request logging and JSON body parsing
-- **Input validation** — validate request data and handle malformed JSON
-- **Error handling** — meaningful HTTP status codes and JSON error responses
-- **Static file serving** — serve HTML, CSS, and JavaScript files
-- **MIME type detection** — set the appropriate `Content-Type`
-- **File streaming** — deliver files using `createReadStream()`
-- **Path traversal protection** — validate resolved file paths
-- **HTTP caching** — generate SHA-256 ETags and handle conditional requests with `If-None-Match`
-
-## Tech Stack
-
-| Technology             | Purpose                          |
-| ---------------------- | -------------------------------- |
-| Node.js                | JavaScript runtime               |
-| JavaScript ES Modules  | Modular code organization        |
-| Native `http` module   | HTTP server                      |
-| `fs` and `fs/promises` | File access and streaming        |
-| `path` and `url`       | URL and filesystem path handling |
-| `crypto`               | SHA-256 hashing for ETags        |
+- **Node.js** — JavaScript runtime.
+- **HTTP module** — Creates the HTTP server.
+- **File System (`fs`)** — Reads files and checks file information.
+- **Path (`path`)** — Resolves and validates file paths.
+- **Crypto (`crypto`)** — Generates SHA-256 hashes for ETags.
+- **ES Modules** — Uses `import` and `export`.
+- **HTML, CSS, JavaScript** — Builds the static frontend.
 
 No external runtime dependencies are required.
 
-## Getting Started
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) installed
-- Git
-
-### Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/sami-dev-dz/http-server-node.git
-cd http-server-node
-```
-
-### Start the server
-
-```bash
-node server.js
-```
-
-The server listens on:
-
-**http://localhost:3000**
-
-Stop the server with `Ctrl + C`.
-
-## Project Structure
+## 📁 Project Structure
 
 ```text
 http-server-node/
 ├── middleware/
-│   ├── logger.js
-│   └── jsonMiddleware.js
+│   ├── jsonMiddleware.js
+│   └── logger.js
 ├── public/
 │   ├── index.html
 │   ├── style.css
 │   └── app.js
-├── mime.js
-├── router.js
-├── server.js
-├── static.js
-├── utils.js
-└── package.json
+├── src/
+│   ├── mime.js
+│   ├── router.js
+│   ├── server.js
+│   ├── static.js
+│   └── utils.js
+├── .gitignore
+├── package.json
+└── README.md
 ```
 
-- `server.js` — creates the HTTP server and coordinates middleware, static files, and API routing.
-- `router.js` — defines API endpoints and handles user operations.
-- `static.js` — serves static files, protects file paths, and implements ETag validation.
-- `mime.js` — maps file extensions to MIME types.
-- `utils.js` — provides reusable JSON response utilities.
-- `middleware/logger.js` — logs incoming requests.
-- `middleware/jsonMiddleware.js` — parses JSON request bodies and handles body-related errors.
-- `public/` — contains the frontend files served by the server.
+## ⚙️ Requirements
 
-## API Reference
+- Node.js installed on your computer.
+- A terminal such as PowerShell, Command Prompt, or Bash.
+- A browser or an HTTP client such as `curl`.
 
-All API endpoints use the `/api` prefix.
+Check your Node.js installation:
 
-| Method | Endpoint         | Description           |
-| ------ | ---------------- | --------------------- |
-| `GET`  | `/api/users`     | Retrieve all users    |
-| `GET`  | `/api/users/:id` | Retrieve a user by ID |
-| `POST` | `/api/users`     | Create a new user     |
+```bash
+node --version
+npm --version
+```
 
-### Get all users
+## 🚀 Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/sami-dev-dz/http-server-node.git
+```
+
+### 2. Open the project directory
+
+```bash
+cd http-server-node
+```
+
+### 3. Start the server
+
+```bash
+node src/server.js
+```
+
+When the server starts successfully, the terminal displays:
+
+```text
+Server running on http://localhost:3000
+```
+
+### 4. Open the application
+
+Visit:
+
+http://localhost:3000
+
+The server listens on port `3000`.
+
+To stop the server, press `Ctrl + C` in the terminal.
+
+## 🌐 API Endpoints
+
+All API routes use the `/api` prefix.
+
+| Method | Endpoint         | Description           | Success status |
+| ------ | ---------------- | --------------------- | -------------- |
+| GET    | `/api/users`     | Retrieve all users    | `200 OK`       |
+| GET    | `/api/users/:id` | Retrieve a user by ID | `200 OK`       |
+| POST   | `/api/users`     | Create a new user     | `201 Created`  |
+
+The user data is stored in memory. This means the data resets when the server restarts.
+
+### 1. Get all users
+
+**Request**
 
 ```http
 GET /api/users
 ```
 
-Example response:
+Example using `curl`:
+
+```bash
+curl http://localhost:3000/api/users
+```
+
+**Example response**
 
 ```json
 [
@@ -124,13 +139,21 @@ Example response:
 ]
 ```
 
-### Get a user by ID
+### 2. Get a user by ID
+
+**Request**
 
 ```http
 GET /api/users/1
 ```
 
-Example response:
+Command:
+
+```bash
+curl http://localhost:3000/api/users/1
+```
+
+**Example response**
 
 ```json
 {
@@ -139,49 +162,78 @@ Example response:
 }
 ```
 
-### Create a user
+If the user does not exist, the server returns `404 Not Found`.
+
+### 3. Create a user
+
+**Request**
 
 ```http
 POST /api/users
-Content-Type: application/json
 ```
 
-Request body:
+Command:
 
-```json
-{
-  "name": "Amine"
-}
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Karim\"}"
 ```
 
-Example response with status `201 Created`:
+**Example response**
 
 ```json
 {
   "id": 3,
-  "name": "Amine"
+  "name": "Karim"
 }
 ```
 
-**Note:** User data is stored in memory. Newly created users are not persisted after the server restarts.
+The server validates the `name` property and returns `400 Bad Request` if the name is missing, empty, or invalid.
 
-### HTTP status codes
+A successful creation returns `201 Created`.
 
-| Status                      | Meaning                                   |
-| --------------------------- | ----------------------------------------- |
-| `200 OK`                    | Request completed successfully            |
-| `201 Created`               | Resource created successfully             |
-| `304 Not Modified`          | Cached resource remains valid             |
-| `400 Bad Request`           | Invalid input or malformed JSON           |
-| `403 Forbidden`             | File path rejected                        |
-| `404 Not Found`             | Resource or route not found               |
-| `405 Method Not Allowed`    | Unsupported HTTP method                   |
-| `413 Payload Too Large`     | Request body exceeds the configured limit |
-| `500 Internal Server Error` | Unexpected server error                   |
+> On Windows PowerShell, use `curl.exe` if `curl` resolves to a PowerShell alias.
 
-## Static Files
+## 🧩 Middleware
 
-The server delivers frontend assets from the `public/` directory.
+The project uses middleware functions to process requests before they reach the router.
+
+### Request logger
+
+File: `middleware/logger.js`
+
+Logs incoming HTTP requests, including their method and URL.
+
+Example:
+
+```text
+GET /
+GET /api/users
+POST /api/users
+```
+
+### JSON body parser
+
+File: `middleware/jsonMiddleware.js`
+
+The JSON middleware:
+
+- Reads the request body.
+- Parses valid JSON.
+- Makes the parsed data available through `req.body`.
+- Rejects malformed JSON with `400 Bad Request`.
+- Limits request bodies to 1 MB and returns `413 Payload Too Large` when the limit is exceeded.
+
+This allows the router to access the data sent in a POST request.
+
+## 📂 Static File Serving
+
+File: `src/static.js`
+
+The server serves frontend files from the `public/` directory.
+
+Examples:
 
 | URL          | File                |
 | ------------ | ------------------- |
@@ -189,76 +241,180 @@ The server delivers frontend assets from the `public/` directory.
 | `/style.css` | `public/style.css`  |
 | `/app.js`    | `public/app.js`     |
 
-The static file handler uses MIME types to tell the browser how to interpret each resource and streams file contents to the response.
+The static file handler:
 
-### HTTP caching with ETags
+- Checks that the requested file exists.
+- Serves files using streams.
+- Sets the appropriate `Content-Type`.
+- Returns `404 Not Found` for missing files.
+- Includes basic path traversal protection.
+- Generates an ETag to support cache validation.
 
-For static files, the server generates an ETag using a SHA-256 hash of the file contents.
+API requests are excluded from static file handling so that `/api/...` requests can be processed by the router.
 
-When a client sends an `If-None-Match` header containing a matching ETag, the server responds with `304 Not Modified` and no response body. Otherwise, it returns `200 OK` with the file content.
+## 🗂️ MIME Types
 
-This reduces unnecessary data transfer when a cached copy is still valid.
+File: `src/mime.js`
 
-## Usage Examples
+The server determines the content type from the file extension.
 
-Run these commands while the server is running.
+Supported types include:
 
-### Request the homepage
+| Extension       | Content-Type       |
+| --------------- | ------------------ |
+| `.html`         | `text/html`        |
+| `.css`          | `text/css`         |
+| `.js`           | `text/javascript`  |
+| `.json`         | `application/json` |
+| `.png`          | `image/png`        |
+| `.jpg`, `.jpeg` | `image/jpeg`       |
+| `.svg`          | `image/svg+xml`    |
 
-```bash
-curl -i http://localhost:3000/
+Unknown extensions use `application/octet-stream`.
+
+## ⚡ HTTP Caching with ETag
+
+The static file handler generates an ETag using a SHA-256 hash of the file contents.
+
+When a client requests a file, the server sends an `ETag` response header.
+
+On a subsequent request, the client can send that value through the `If-None-Match` request header.
+
+If the ETag matches, the server returns:
+
+```http
+HTTP/1.1 304 Not Modified
 ```
 
-### Retrieve all users
+A `304` response tells the client that its cached copy can be reused, so the server does not need to send the file contents again.
+
+## 🛡️ Error Handling
+
+The server handles common errors with appropriate HTTP status codes.
+
+| Status                      | Meaning                        | Example                           |
+| --------------------------- | ------------------------------ | --------------------------------- |
+| `200 OK`                    | Request succeeded              | Retrieving users                  |
+| `201 Created`               | Resource created               | Creating a user                   |
+| `304 Not Modified`          | Cached resource is still valid | Matching ETag                     |
+| `400 Bad Request`           | Invalid request data           | Malformed JSON or invalid ID      |
+| `403 Forbidden`             | File path rejected             | Path outside the public directory |
+| `404 Not Found`             | Resource not found             | Unknown route or user             |
+| `405 Method Not Allowed`    | HTTP method unsupported        | POST to a GET-only route          |
+| `413 Payload Too Large`     | Request body exceeds the limit | JSON body larger than 1 MB        |
+| `500 Internal Server Error` | Unexpected server error        | Unhandled processing error        |
+
+## 🧪 Testing the Server
+
+Start the server first:
 
 ```bash
-curl -i http://localhost:3000/api/users
+node src/server.js
 ```
 
-### Retrieve one user
+Open another terminal and run the following commands.
+
+### Test the homepage
 
 ```bash
-curl -i http://localhost:3000/api/users/1
+curl.exe -i http://localhost:3000/
 ```
 
-### Create a user
+### Test the users endpoint
 
 ```bash
-curl -i -X POST http://localhost:3000/api/users -H "Content-Type: application/json" -d "{\"name\":\"Amine\"}"
+curl.exe -i http://localhost:3000/api/users
 ```
 
-### Test conditional caching
-
-First, request a static file and copy the `ETag` response header.
-
-Then send that value back:
+### Test a specific user
 
 ```bash
-curl -i -H 'If-None-Match: "YOUR_ETAG_HERE"' http://localhost:3000/style.css
+curl.exe -i http://localhost:3000/api/users/1
 ```
 
-If the ETag matches, the expected response is `304 Not Modified`.
+### Test a missing user
 
-## What I Learned
+```bash
+curl.exe -i http://localhost:3000/api/users/999
+```
 
-- How HTTP requests, responses, headers, and status codes work
-- How to build an HTTP server using Node.js native modules
-- How to implement routing and reusable middleware
-- How to parse and validate JSON request bodies
-- How to serve and stream static files
-- How to work with MIME types and filesystem paths
-- How to prevent basic path traversal attempts
-- How ETags and conditional requests support HTTP caching
-- How to organize a Node.js application into reusable modules
+Expected status: `404 Not Found`.
 
-## Future Improvements
+### Test creating a user
 
-- Support additional HTTP methods and routes
-- Improve ETag comparison for all valid `If-None-Match` forms
-- Add automated tests for routes, middleware, and caching
-- Persist API data in a database
-- Improve caching performance by avoiding repeated file reads
+```bash
+curl.exe -i -X POST http://localhost:3000/api/users -H "Content-Type: application/json" -d "{\"name\":\"Karim\"}"
+```
+
+Expected status: `201 Created`.
+
+### Test an invalid JSON body
+
+```bash
+curl.exe -i -X POST http://localhost:3000/api/users -H "Content-Type: application/json" -d "{invalid}"
+```
+
+Expected status: `400 Bad Request`.
+
+### Test an unsupported HTTP method
+
+```bash
+curl.exe -i -X DELETE http://localhost:3000/api/users
+```
+
+Expected status: `405 Method Not Allowed`.
+
+### Test ETag caching
+
+First, retrieve the response headers:
+
+```bash
+curl.exe -i http://localhost:3000/style.css
+```
+
+Copy the `ETag` value from the response. Then use it in the next request, replacing `YOUR_ETAG` with the actual value:
+
+```bash
+curl.exe -i http://localhost:3000/style.css -H "If-None-Match: YOUR_ETAG"
+```
+
+If the file has not changed and the ETag matches, the server should return `304 Not Modified`.
+
+## 📚 What I Learned
+
+Through this project, I practiced:
+
+- Creating an HTTP server with Node.js's native `http` module.
+- Understanding HTTP requests and responses.
+- Working with HTTP methods and status codes.
+- Building a basic REST API without a framework.
+- Separating routing logic from server logic.
+- Implementing middleware and request body parsing.
+- Handling JSON data and validating user input.
+- Reading and serving static files.
+- Working with file streams and MIME types.
+- Resolving file paths and preventing basic path traversal.
+- Understanding ETags and conditional HTTP requests.
+- Handling common errors in an HTTP server.
+
+## 🔮 Possible Improvements
+
+Future improvements could include:
+
+- Adding automated tests with Node.js's built-in test runner.
+- Supporting `PUT` and `DELETE` endpoints.
+- Replacing in-memory storage with a database.
+- Improving ETag generation efficiency.
+- Adding more robust request validation and security checks.
+- Supporting environment variables for server configuration.
+- Improving logging and centralized error handling.
+
+## 👨‍💻 Author
+
+**Sami Ghoul**
+
+- GitHub: [sami-dev-dz](https://github.com/sami-dev-dz)
 
 ---
 
-**Built as a hands-on project to understand HTTP and Node.js fundamentals.**
+_Built as a learning project to understand the fundamentals of HTTP servers with Node.js, without relying on a web framework._

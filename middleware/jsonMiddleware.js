@@ -1,4 +1,4 @@
-import { sendJson } from "../utils.js";
+import { sendJson } from "../src/utils.js";
 
 const MAX_BODY_SIZE = 1 * 1024 * 1024; // 1 MB
 

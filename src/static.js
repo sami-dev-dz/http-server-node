@@ -75,7 +75,12 @@ export async function serveStatic(req, res, pathname) {
 
     const clientETag = req.headers["if-none-match"];
 
-    if (clientETag === etag) {
+    if (
+      clientETag === "*" ||
+      clientETag
+        ?.split(",")
+        .some((value) => value.trim().replace(/^W\//, "") === etag)
+    ) {
       res.statusCode = 304;
       res.end();
       return true;

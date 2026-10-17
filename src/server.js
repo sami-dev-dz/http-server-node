@@ -1,7 +1,7 @@
 import http from "http";
-import { router } from "./router.js";
-import { logger } from "./middleware/logger.js";
-import { jsonMiddleware } from "./middleware/jsonMiddleware.js";
+import { router } from "../router.js";
+import { logger } from "../middleware/logger.js";
+import { jsonMiddleware } from "../middleware/jsonMiddleware.js";
 import { serveStatic } from "./static.js";
 
 const server = http.createServer((req, res) => {
